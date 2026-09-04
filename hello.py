@@ -7,6 +7,15 @@ username = "cool_creator"
 bio = "Fun Blogger"
 followers = 100
 
+followers += 50
+print("Day1:", followers)
+
+followers += 20
+print("Day2:", followers)
+
+followers -= 10
+print("Day3:", followers)
+
 print("Username:", username)
 print("Bio:", bio)
 print("Followers:", followers)
