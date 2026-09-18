@@ -4,6 +4,7 @@ fail = 0
 while True:
     userInput = input("Enter stock quantity or Exit: ")
     if userInput == "Exit":
+        fail += 1
         break
 
     if not userInput.isnumeric():
@@ -14,4 +15,5 @@ while True:
         if inventory >= 500:
             print("Inventory is full, please stop adding stock.")
             break
-     
+
+print("Total inventory:", inventory, "| Number of errors:", fail)
