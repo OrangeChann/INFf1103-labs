@@ -1,4 +1,5 @@
 inventory = int(0)
+fail = 0
 
 while True:
     userInput = input("Enter stock quantity or Exit: ")
