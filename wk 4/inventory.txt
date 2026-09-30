@@ -1,2 +1,2 @@
-Total inventory = 80
-[(1, 'Robot', 20), (2, 'Pencil', 30), (3, 'Mouse', 30)]
+Total inventory = 380
+[(1, 'Robot', 20), (2, 'Pencil', 30), (3, 'Mouse', 30), (4, 'Eraser ', 300)]
