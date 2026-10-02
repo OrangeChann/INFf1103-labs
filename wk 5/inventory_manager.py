@@ -1,11 +1,24 @@
+import os
+import json
+
+INVENTORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inventory.json")
+
 LINE = "-" * 48
 
 
-products = [
-    {"id": "P001", "name": "Laptop", "price": 1200.0, "stock": 15},
-    {"id": "P002", "name": "Mouse", "price": 25.5, "stock": 40},
-    {"id": "P003", "name": "Keyboard", "price": 45.0, "stock": 25},
-]
+def load_inventory():
+    if not os.path.exists(INVENTORY_FILE):
+        print("inventory.json not found. Starting with an empty inventory.")
+        return []
+    print("inventory.json found.")
+    try:
+        with open(INVENTORY_FILE, "r") as f:
+            products = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        print("Could not read inventory.json. Starting with an empty inventory.")
+        return []
+    print("Inventory loaded successfully.")
+    return products
 
 
 def find_product(products, product_id):
@@ -82,6 +95,7 @@ def search_product(products):
 
 
 if __name__ == "__main__":
+    products = load_inventory()
     display_all(products)
     add_product(products)
     update_stock(products)
