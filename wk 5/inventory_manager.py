@@ -21,6 +21,11 @@ def load_inventory():
     return products
 
 
+def save_inventory(products):
+    with open(INVENTORY_FILE, "w") as f:
+        json.dump(products, f, indent=4)
+
+
 def find_product(products, product_id):
     for product in products:
         if product["id"].lower() == product_id.lower():
@@ -94,10 +99,50 @@ def search_product(products):
     print(LINE)
 
 
-if __name__ == "__main__":
+def print_menu():
+    print("\n----------- MENU -----------")
+    print("1. Display All Products")
+    print("2. Add Product")
+    print("3. Update Stock")
+    print("4. Search Product")
+    print("5. Save Inventory")
+    print("6. Exit")
+    print("----------------------------")
+
+
+def main():
+    print("=" * 40)
+    print("INVENTORY MANAGEMENT SYSTEM")
+    print("=" * 40)
+    print()
     products = load_inventory()
-    display_all(products)
-    add_product(products)
-    update_stock(products)
-    search_product(products)
-    display_all(products)
+
+    while True:
+        print_menu()
+        choice = input("\nEnter option: ").strip()
+
+        if choice == "1":
+            display_all(products)
+        elif choice == "2":
+            add_product(products)
+        elif choice == "3":
+            update_stock(products)
+        elif choice == "4":
+            search_product(products)
+        elif choice == "5":
+            print("\nSaving inventory...")
+            save_inventory(products)
+            print("Inventory saved successfully to inventory.json.")
+        elif choice == "6":
+            print("\nSaving inventory before exit...")
+            save_inventory(products)
+            print("Inventory saved successfully.")
+            print("\nThank you for using Inventory Management System.")
+            print("Program terminated.")
+            break
+        else:
+            print("\nInvalid option. Please enter a number from 1 to 6.")
+
+
+if __name__ == "__main__":
+    main()
