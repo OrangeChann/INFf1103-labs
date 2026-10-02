@@ -1,7 +1,10 @@
 import os
 import json
 
-INVENTORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inventory.json")
+INVENTORY_FILE = os.environ.get(
+    "INVENTORY_FILE",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "inventory.json"),
+)
 
 LINE = "-" * 48
 
