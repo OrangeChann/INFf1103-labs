@@ -1,7 +1,8 @@
 import os
 import json
 
-from product import Product
+from physical_product import PhysicalProduct
+from digital_product import DigitalProduct
 
 
 class InventoryFile:
@@ -28,7 +29,7 @@ class InventoryFile:
 
         for record in records:
             try:
-                product = Product(record["id"], record["name"], record["price"], record["stock"])
+                product = self.__create_product(record)
             except (KeyError, TypeError, ValueError):
                 print(f"Skipping invalid product record: {record}")
                 continue
@@ -36,14 +37,17 @@ class InventoryFile:
         print("Inventory loaded successfully.")
 
     def save(self, inventory):
-        records = [
-            {
-                "id": product.get_product_id(),
-                "name": product.get_name(),
-                "price": product.get_price(),
-                "stock": product.get_stock(),
-            }
-            for product in inventory.get_products()
-        ]
+        # Each product describes itself, so this works for every product type.
+        records = [product.to_dict() for product in inventory.get_products()]
         with open(self.__file_path, "w") as f:
             json.dump(records, f, indent=4)
+
+    def __create_product(self, record):
+        # The saved type identifier decides which subclass to create.
+        common = (record["id"], record["name"], record["price"], record["stock"])
+        product_type = record["type"]
+        if product_type == "physical":
+            return PhysicalProduct(*common, record["weight"])
+        if product_type == "digital":
+            return DigitalProduct(*common, record["download_size"])
+        raise ValueError(f"Unknown product type: {product_type}")

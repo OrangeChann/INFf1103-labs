@@ -49,6 +49,15 @@ class Product(ABC):
             f"Price: ${self.__price:.2f} | Stock: {self.__stock}"
         )
 
+    def to_dict(self):
+        # Subclasses extend this with their type and additional attributes.
+        return {
+            "id": self.__product_id,
+            "name": self.__name,
+            "price": self.__price,
+            "stock": self.__stock,
+        }
+
     @abstractmethod
     def get_fulfilment_info(self):
         """Return a message explaining how this product reaches the customer."""

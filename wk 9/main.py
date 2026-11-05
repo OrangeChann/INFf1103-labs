@@ -1,6 +1,8 @@
 import os
 
-from product import Product
+from can_be_shipped import CanBeShipped
+from physical_product import PhysicalProduct
+from digital_product import DigitalProduct
 from inventory import Inventory, LINE
 from inventory_file import InventoryFile
 
@@ -10,8 +12,23 @@ INVENTORY_FILE = os.environ.get(
 )
 
 
+def create_product(product_type, product_id, name, price, stock):
+    # Asks for the additional information that this product type requires.
+    if product_type == "1":
+        weight = float(input("Weight (kg): "))
+        return PhysicalProduct(product_id, name, price, stock, weight)
+    download_size = float(input("Download Size (MB): "))
+    return DigitalProduct(product_id, name, price, stock, download_size)
+
+
 def add_product(inventory):
     print("\nAdd New Product")
+    print("1. Physical Product")
+    print("2. Digital Product")
+    product_type = input("Product Type: ").strip()
+    if product_type not in ("1", "2"):
+        print("\nInvalid product type. Product not added.")
+        return
     product_id = input("Product ID: ").strip()
     if not product_id:
         print("\nProduct ID cannot be empty. Product not added.")
@@ -23,9 +40,9 @@ def add_product(inventory):
     try:
         price = float(input("Price: "))
         stock = int(input("Stock Quantity: "))
-        product = Product(product_id, name, price, stock)
+        product = create_product(product_type, product_id, name, price, stock)
     except ValueError as error:
-        print(f"\nInvalid price or quantity ({error}). Product not added.")
+        print(f"\nInvalid value entered ({error}). Product not added.")
         return
     inventory.add_product(product)
     print("\nProduct added successfully!")
@@ -59,6 +76,10 @@ def search_product(inventory):
     print("\nProduct Found")
     print(LINE)
     product.display_information()
+    print(f"    Fulfilment: {product.get_fulfilment_info()}")
+    # Only products that signed the CanBeShipped contract have a shipping cost.
+    if isinstance(product, CanBeShipped):
+        print(f"    Shipping Cost: ${product.calculate_shipping_cost():.2f}")
     print(LINE)
 
 
