@@ -3,6 +3,7 @@ import os
 from can_be_shipped import CanBeShipped
 from physical_product import PhysicalProduct
 from digital_product import DigitalProduct
+from subscription_product import SubscriptionProduct
 from inventory import Inventory, LINE
 from inventory_file import InventoryFile
 
@@ -17,16 +18,20 @@ def create_product(product_type, product_id, name, price, stock):
     if product_type == "1":
         weight = float(input("Weight (kg): "))
         return PhysicalProduct(product_id, name, price, stock, weight)
-    download_size = float(input("Download Size (MB): "))
-    return DigitalProduct(product_id, name, price, stock, download_size)
+    if product_type == "2":
+        download_size = float(input("Download Size (MB): "))
+        return DigitalProduct(product_id, name, price, stock, download_size)
+    duration_months = int(input("Duration (months): "))
+    return SubscriptionProduct(product_id, name, price, stock, duration_months)
 
 
 def add_product(inventory):
     print("\nAdd New Product")
     print("1. Physical Product")
     print("2. Digital Product")
+    print("3. Subscription Product")
     product_type = input("Product Type: ").strip()
-    if product_type not in ("1", "2"):
+    if product_type not in ("1", "2", "3"):
         print("\nInvalid product type. Product not added.")
         return
     product_id = input("Product ID: ").strip()

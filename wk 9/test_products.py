@@ -14,6 +14,7 @@ from inventory import Inventory
 from inventory_file import InventoryFile
 from physical_product import PhysicalProduct
 from product import Product
+from subscription_product import SubscriptionProduct
 
 
 def printed_by(function, *args):
@@ -171,6 +172,7 @@ class TestJsonPersistence(unittest.TestCase):
         inventory = Inventory()
         inventory.add_product(make_guitar())
         inventory.add_product(make_game())
+        inventory.add_product(SubscriptionProduct("S100", "Music", 10, 50, 6))
         InventoryFile(self.path).save(inventory)
 
     def test_saved_records_include_type_and_additional_attributes(self):
@@ -181,6 +183,8 @@ class TestJsonPersistence(unittest.TestCase):
         self.assertEqual(records["P100"]["weight"], 3.5)
         self.assertEqual(records["D100"]["type"], "digital")
         self.assertEqual(records["D100"]["download_size"], 2048.0)
+        self.assertEqual(records["S100"]["type"], "subscription")
+        self.assertEqual(records["S100"]["duration_months"], 6)
 
     def test_loading_restores_the_correct_subclasses_and_values(self):
         self.save_sample_inventory()
@@ -197,6 +201,10 @@ class TestJsonPersistence(unittest.TestCase):
         self.assertIs(type(game), DigitalProduct)
         self.assertEqual(game.get_download_size(), 2048.0)
 
+        music = inventory.search_product("S100")
+        self.assertIs(type(music), SubscriptionProduct)
+        self.assertEqual(music.get_duration_months(), 6)
+
     def test_invalid_records_are_skipped(self):
         records = [
             {"id": "A", "name": "No type", "price": 1, "stock": 1},
@@ -209,6 +217,21 @@ class TestJsonPersistence(unittest.TestCase):
             json.dump(records, f)
         products = self.load_inventory().get_products()
         self.assertEqual([p.get_product_id() for p in products], ["D"])
+
+
+class TestSubscriptionProduct(unittest.TestCase):
+    """Optional reflection task (section 8)."""
+
+    def test_subscription_is_a_product_but_cannot_be_shipped(self):
+        music = SubscriptionProduct("S100", "Music", 10, 50, 6)
+        self.assertIsInstance(music, Product)
+        self.assertNotIsInstance(music, CanBeShipped)
+        self.assertIn("Duration: 6 months", printed_by(music.display_information))
+        self.assertIn("activated", music.get_fulfilment_info())
+
+    def test_zero_month_subscription_is_rejected(self):
+        with self.assertRaises(ValueError):
+            SubscriptionProduct("S1", "Bad", 1, 1, 0)
 
 
 if __name__ == "__main__":

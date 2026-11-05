@@ -46,5 +46,13 @@
         "stock": 50,
         "type": "digital",
         "download_size": 850.5
+    },
+    {
+        "id": "S001",
+        "name": "Cloud Storage Plan",
+        "price": 9.99,
+        "stock": 200,
+        "type": "subscription",
+        "duration_months": 12
     }
 ]

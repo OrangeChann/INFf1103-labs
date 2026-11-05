@@ -3,6 +3,7 @@ import json
 
 from physical_product import PhysicalProduct
 from digital_product import DigitalProduct
+from subscription_product import SubscriptionProduct
 
 
 class InventoryFile:
@@ -50,4 +51,6 @@ class InventoryFile:
             return PhysicalProduct(*common, record["weight"])
         if product_type == "digital":
             return DigitalProduct(*common, record["download_size"])
+        if product_type == "subscription":
+            return SubscriptionProduct(*common, record["duration_months"])
         raise ValueError(f"Unknown product type: {product_type}")
