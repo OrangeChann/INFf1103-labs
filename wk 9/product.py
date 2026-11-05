@@ -1,9 +1,16 @@
-class Product:
-    """Represents a single product and manages its own state.
+from abc import ABC, abstractmethod
 
-    Responsibility (SRP): store one product's information and control
+
+class Product(ABC):
+    """Abstract base class holding what every type of product has in common.
+
+    Responsibility (SRP): store one product's common information and control
     how that information changes. It does not read input, print menus,
     touch files or manage other products.
+
+    OCP: a new type of product is added by writing a new subclass, not by
+    changing this class. Product cannot be instantiated directly because
+    get_fulfilment_info() has no implementation here.
     """
 
     def __init__(self, product_id, name, price, stock):
@@ -41,3 +48,7 @@ class Product:
             f"ID: {self.__product_id} | Name: {self.__name} | "
             f"Price: ${self.__price:.2f} | Stock: {self.__stock}"
         )
+
+    @abstractmethod
+    def get_fulfilment_info(self):
+        """Return a message explaining how this product reaches the customer."""
