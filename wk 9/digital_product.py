@@ -2,7 +2,7 @@ from product import Product
 
 
 class DigitalProduct(Product):
-    """A product delivered by download."""
+    """A product delivered by download, so it does not implement CanBeShipped."""
 
     def __init__(self, product_id, name, price, stock, download_size):
         super().__init__(product_id, name, price, stock)
