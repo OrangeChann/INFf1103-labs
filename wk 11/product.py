@@ -31,10 +31,11 @@ class Product(ABC):
     # Lab 8, sections 2.2 and 5: association and explicit design types.
     def __init__(self, product_id: str, name: str, price: float,
                  stock: int, supplier: Supplier) -> None:
-        if price < 0:
-            raise ValueError("Price cannot be negative.")
-        if stock < 0:
-            raise ValueError("Stock cannot be negative.")
+        # Lab 9, section 4: Product owns its price and stock rules, so every
+        # subclass inherits them through super().__init__().
+        if price <= 0:
+            raise ValueError("Price must be greater than zero.")
+        Product.__check_stock(stock)
         # Double underscore marks these as private: outside code should
         # use the public methods below instead of changing them directly.
         self.__product_id: str = product_id
@@ -66,9 +67,14 @@ class Product(ABC):
     def update_stock(self, quantity: int) -> None:
         """Lab 8, section 6.3: set a nonnegative stock level for every subtype."""
         # The Product decides what counts as a valid stock level.
-        if quantity < 0:
-            raise ValueError("Stock cannot be negative.")
+        Product.__check_stock(quantity)
         self.__stock = int(quantity)
+
+    @staticmethod
+    def __check_stock(quantity: int) -> None:
+        """One stock rule, used on creation and on every update."""
+        if quantity < 0:
+            raise ValueError("Stock quantity cannot be negative.")
 
     def display_information(self) -> None:
         print(

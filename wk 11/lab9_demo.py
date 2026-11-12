@@ -98,11 +98,50 @@ def section_3() -> None:
         print(f"  {module.__name__}.py imports: {known or 'none - it uses ProductFactory'}")
 
 
+def try_it(label: str, action) -> None:
+    """Run one action and show whether validation accepted or rejected it."""
+    try:
+        action()
+    except ValueError as error:
+        print(f"  {label:<44} -> rejected: {error}")
+    else:
+        print(f"  {label:<44} -> accepted")
+
+
+def section_4() -> None:
+    supplier = Supplier("SUP1", "Office Supplies Ltd", "sales@example.com")
+    create = ProductFactory.create
+
+    print("4. VALIDATION - each rule is checked by the class that owns it")
+    try_it("Product price 0", lambda: create("physical", "P1", "Lamp", 0, 5, supplier))
+    try_it("Product price -5", lambda: create("physical", "P1", "Lamp", -5, 5, supplier))
+    try_it("Product price 0.01", lambda: create("physical", "P1", "Lamp", 0.01, 5, supplier))
+    try_it("Product stock -1", lambda: create("physical", "P1", "Lamp", 25, -1, supplier))
+    try_it("Product stock 0", lambda: create("physical", "P1", "Lamp", 25, 0, supplier))
+    lamp = create("physical", "P1", "Lamp", 25, 5, supplier)
+    order = Order("O1")
+    try_it("OrderLine quantity 0", lambda: order.add_order_line(lamp, 0))
+    try_it("OrderLine quantity -2", lambda: order.add_order_line(lamp, -2))
+    try_it("OrderLine quantity 1", lambda: order.add_order_line(lamp, 1))
+
+    print("\n4. PREDICT FIRST - does DigitalProduct keep Product's stock rule?")
+    app = create("digital", "D1", "Photo Editor", 49.90, 100, supplier)
+    try_it("DigitalProduct created with stock -1",
+           lambda: create("digital", "D2", "Editor", 49.90, -1, supplier))
+    try_it("DigitalProduct update_stock(-1)", lambda: app.update_stock(-1))
+    print(f"  Stock after rejected update: {app.get_stock()} (unchanged)")
+    try_it("DigitalProduct update_stock(0)", lambda: app.update_stock(0))
+    overrides = "update_stock" in type(app).__dict__
+    print(f"  DigitalProduct overrides update_stock: {overrides} (rule is inherited)")
+
+
 def main() -> None:
     heading("SECTION 2 - STRATEGY PATTERN")
     section_2()
     heading("SECTION 3 - FACTORY PATTERN")
     section_3()
+    heading("SECTION 4 - VALIDATION")
+    section_4()
 
 
 if __name__ == "__main__":

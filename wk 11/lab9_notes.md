@@ -153,3 +153,38 @@ Change if different: none; the prediction matched. This only holds because
 the loader passes the record's remaining fields (weight, download_size, ...)
 to the factory instead of reading each type's field by name as the Lab 8
 loader did; otherwise inventory_file.py would still need a change.
+
+## 4. Validation — where each rule lives
+
+- Product (product.py) owns price and stock: price must be greater than zero
+  (Lab 8 only rejected negative prices, so a price of 0 slipped through) and
+  stock quantity cannot be negative, both in the constructor and in
+  update_stock().
+- OrderLine (order_line.py) owns its quantity: it must be greater than zero.
+- The extra details stay with their subclass (weight, download size,
+  duration), and the discount strategies check their own settings.
+Each check raises ValueError with a clear message, so callers (the menu, the
+loaders) decide how to report it; the classes never print or ask for input.
+
+## 4. Predict first — may DigitalProduct skip or change the stock rule?
+
+Prediction: no. Code that holds a Product (Inventory.update_stock, the menu,
+the loaders) relies on the promise that stock is never negative. If
+DigitalProduct skipped the check, a DigitalProduct could reach a state a
+Product never can, so it could not safely substitute for a Product: an LSP
+violation (a weaker guarantee). Changing the rule to be stricter (for example
+refusing stock of 0) would also break LSP, because a caller doing something
+valid for any Product would get an unexpected error. So DigitalProduct must
+keep the rule exactly. The rule is written once in Product and inherited, so
+DigitalProduct gets it through super().__init__() and the inherited
+update_stock() without repeating or overriding it. (Digital stock means
+available licences in my system, so "not negative" still makes sense.)
+
+Observed result: a DigitalProduct created with stock -1 and update_stock(-1)
+on an existing one were both rejected with "Stock quantity cannot be
+negative.", and the stock stayed at 100. update_stock(0) was accepted.
+DigitalProduct does not override update_stock, so it uses Product's rule.
+The same checks pass for PhysicalProduct and SubscriptionProduct in
+tests/test_validation.py. Price 0 is now rejected ("Price must be greater than
+zero."), which Lab 8 had allowed.
+Change if different: none; the prediction matched.
