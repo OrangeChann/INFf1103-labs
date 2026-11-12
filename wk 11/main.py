@@ -9,6 +9,9 @@ from inventory_file import InventoryFile
 from product import Product
 from supplier import Supplier
 from order import Order
+from discount_strategy import (DiscountStrategy, NoDiscount,
+                               PercentageDiscount, BulkDiscount)
+from student_discount import StudentDiscount
 
 INVENTORY_FILE = os.environ.get(
     "INVENTORY_FILE",
@@ -118,16 +121,37 @@ def remove_product(inventory: Inventory) -> None:
         print("Product not found.")
 
 
+def choose_discount() -> DiscountStrategy:
+    """Lab 9, section 2: the menu creates the strategy the user picks.
+
+    Order never sees this choice; it only calls apply() on what it is given.
+    """
+    print("1. No Discount")
+    print("2. Percentage Discount")
+    print("3. Bulk Discount (20 off orders of 200 or more)")
+    print("4. Student Discount (5% off)")
+    choice = input("Discount option: ").strip()
+    if choice == "1":
+        return NoDiscount()
+    if choice == "2":
+        return PercentageDiscount(float(input("Percentage off: ")))
+    if choice == "3":
+        return BulkDiscount(200, 20)
+    if choice == "4":
+        return StudentDiscount()
+    raise ValueError("Unknown discount option.")
+
+
 def manage_orders(inventory: Inventory, orders: dict[str, Order]) -> None:
     """Section 4: orders own their lines; this menu only supplies products/quantities."""
     while True:
         print("\nORDERS (current session)")
         print("1. Create Order\n2. Add Order Line\n3. Display Order")
-        print("4. Remove Order Line\n5. Cancel Order\n6. Back")
+        print("4. Remove Order Line\n5. Cancel Order\n6. Set Discount\n7. Back")
         choice = input("Order option: ").strip()
-        if choice == "6":
+        if choice == "7":
             return
-        if choice not in ("1", "2", "3", "4", "5"):
+        if choice not in ("1", "2", "3", "4", "5", "6"):
             print("Invalid order option.")
             continue
         order_id = input("Order ID: ").strip()
@@ -158,6 +182,9 @@ def manage_orders(inventory: Inventory, orders: dict[str, Order]) -> None:
             elif choice == "5":
                 order.cancel()
                 print("Order cancelled; its lines were removed.")
+            elif choice == "6":
+                order.set_discount(choose_discount())
+                print(f"Discount set: {order.discount}")
         except (ValueError, IndexError) as error:
             print(f"Invalid order operation: {error}")
 

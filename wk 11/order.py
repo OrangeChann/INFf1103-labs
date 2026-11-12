@@ -1,13 +1,22 @@
-"""Lab 8, sections 4.2-4.3: Order creates and manages its composed lines."""
+"""Lab 8, sections 4.2-4.3: Order creates and manages its composed lines.
+
+Lab 9, section 2.3: Order is given a DiscountStrategy and only calls its
+apply() method. It contains no if/elif logic about discount types.
+"""
+from discount_strategy import DiscountStrategy, NoDiscount
 from order_line import OrderLine
 from product import Product
 
 
 class Order:
-    def __init__(self, order_id: str) -> None:
+    def __init__(self, order_id: str,
+                 discount: DiscountStrategy | None = None) -> None:
         self.order_id: str = order_id
         self.__order_lines: list[OrderLine] = []
         self.__cancelled: bool = False
+        # Association: the strategy is created outside and only used here.
+        # None (not NoDiscount() in the signature) avoids a shared default.
+        self.__discount: DiscountStrategy = discount if discount is not None else NoDiscount()
 
     @property
     def order_lines(self) -> list[OrderLine]:
@@ -17,6 +26,14 @@ class Order:
     @property
     def cancelled(self) -> bool:
         return self.__cancelled
+
+    @property
+    def discount(self) -> DiscountStrategy:
+        return self.__discount
+
+    def set_discount(self, discount: DiscountStrategy) -> None:
+        """Section 2.3: swap the strategy on an existing order."""
+        self.__discount = discount
 
     def add_order_line(self, product: Product, quantity: int) -> None:
         if self.__cancelled:
@@ -30,8 +47,14 @@ class Order:
             raise IndexError("Order line index is out of range.")
         del self.__order_lines[index]
 
-    def calculate_total(self) -> float:
+    def calculate_subtotal(self) -> float:
+        """Sum of the line subtotals, before any discount."""
         return sum((line.calculate_subtotal() for line in self.__order_lines), 0.0)
+
+    def calculate_total(self) -> float:
+        """Section 2.3: add up the lines, then let the strategy apply its discount."""
+        total = self.calculate_subtotal()
+        return self.__discount.apply(total)
 
     def cancel(self) -> None:
         self.__order_lines.clear()
@@ -42,4 +65,6 @@ class Order:
         for number, line in enumerate(self.__order_lines, start=1):
             print(f"{number}. {line.product.get_name()} x {line.quantity} "
                   f"= ${line.calculate_subtotal():.2f}")
+        print(f"Subtotal: ${self.calculate_subtotal():.2f}")
+        print(f"Discount: {self.__discount}")
         print(f"Order total: ${self.calculate_total():.2f}")

@@ -48,3 +48,52 @@ So the same "which class?" decision is repeated in two application files.
   read-only folder or locked file (OSError) would crash the program on exit.
 - inventory_file.py load() checks os.path.exists() before opening instead of
   catching FileNotFoundError; section 5.2 uses the try / except style instead.
+
+## 2.1 Predict first — adding a 5% student discount
+
+Prediction (without Strategy): the Order class must change. Its
+calculate_total() method would need a new elif discount_type == "student"
+branch returning total * 0.95. Every new discount means editing and
+re-testing that same method, which breaks the Open/Closed Principle.
+
+Prediction (with my Strategy version): no existing class changes. I add one new
+class, StudentDiscount(DiscountStrategy), with its own apply(). Order,
+NoDiscount, PercentageDiscount and BulkDiscount stay exactly as they are.
+Only the menu gains an option so a user can pick it; that is user-interface
+wiring, not discount logic.
+
+Observed result: adding StudentDiscount needed only the new file
+student_discount.py. order.py was not edited; the demo's OCP check found no
+"Percentage", "Bulk", "Student" or "elif" anywhere in the Order class. The menu
+(main.py choose_discount) gained option 4 so a user can select it.
+Change if different: none; the prediction matched.
+
+## 2.3 Predict first — order lines adding up to 250
+
+Prediction: with BulkDiscount(200, 20), 250 is at least 200, so
+calculate_total() returns 250 - 20 = 230.00.
+After set_discount(PercentageDiscount(10)) on the same order, the bulk
+strategy is replaced, not stacked, and the lines have not changed, so it
+returns 250 x 0.9 = 225.00 (10% of 250, not 10% of 230).
+
+Observed result: subtotal 250.00; BulkDiscount(200, 20) gave 230.00; after
+set_discount(PercentageDiscount(10)) the same order gave 225.00.
+Change if different: none; the prediction matched. It confirmed that
+set_discount() replaces the strategy rather than adding a second discount.
+
+## 2.4 Predict first — Order and DiscountStrategy relationship
+
+Prediction: association. A discount is something the order uses, not a part of
+the order. The strategy object is created outside Order (or NoDiscount by
+default) and passed in, it can be replaced with set_discount(), and two orders
+can share the same PercentageDiscount object because strategies hold no
+order-specific data. Deleting an order does not destroy the strategy.
+Multiplicity: each Order uses exactly 1 DiscountStrategy (never none, because
+NoDiscount is the default); each DiscountStrategy object is used by 0..* Orders.
+
+Observed result: two orders were created with the same PercentageDiscount
+object; first.discount is second.discount was True and each order got its own
+correct total (90.00 and 270.00). After deleting both orders the strategy still
+worked (apply(50) = 45.00), and an order created with no strategy used
+"No discount". This matches association with 1 (strategy) to 0..* (orders).
+Change if different: none; the prediction matched.

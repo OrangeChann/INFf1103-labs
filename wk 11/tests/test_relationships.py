@@ -260,7 +260,7 @@ class TestIntegration(Lab8TestCase):
         inventory.add_product(self.game)
         orders: dict[str, Order] = {}
         answers = ["1", "O1", "2", "O1", "D100", "2", "3", "O1",
-                   "4", "O1", "1", "2", "O1", "D100", "1", "5", "O1", "6"]
+                   "4", "O1", "1", "2", "O1", "D100", "1", "5", "O1", "7"]
         with patch("builtins.input", side_effect=answers):
             output = self.capture(main.manage_orders, inventory, orders)
         self.assertIn("Order total: $120.00", output)
