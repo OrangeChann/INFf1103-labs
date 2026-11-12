@@ -1,0 +1,93 @@
+[
+    {
+        "id": "P001",
+        "name": "Laptop",
+        "price": 1200.0,
+        "stock": 15,
+        "type": "physical",
+        "weight": 2.1,
+        "supplier": {
+            "supplier_id": "SUP1",
+            "name": "Demo Technology Supplier",
+            "contact_email": "sales@example.com"
+        }
+    },
+    {
+        "id": "P002",
+        "name": "Mouse",
+        "price": 25.5,
+        "stock": 40,
+        "type": "physical",
+        "weight": 0.1,
+        "supplier": {
+            "supplier_id": "SUP1",
+            "name": "Demo Technology Supplier",
+            "contact_email": "sales@example.com"
+        }
+    },
+    {
+        "id": "P003",
+        "name": "Keyboard",
+        "price": 45.0,
+        "stock": 25,
+        "type": "physical",
+        "weight": 0.8,
+        "supplier": {
+            "supplier_id": "SUP1",
+            "name": "Demo Technology Supplier",
+            "contact_email": "sales@example.com"
+        }
+    },
+    {
+        "id": "P004",
+        "name": "Robot",
+        "price": 30.0,
+        "stock": 15,
+        "type": "physical",
+        "weight": 1.5,
+        "supplier": {
+            "supplier_id": "SUP1",
+            "name": "Demo Technology Supplier",
+            "contact_email": "sales@example.com"
+        }
+    },
+    {
+        "id": "D001",
+        "name": "Operating System",
+        "price": 139.99,
+        "stock": 100,
+        "type": "digital",
+        "download_size": 5400.0,
+        "supplier": {
+            "supplier_id": "SUP1",
+            "name": "Demo Technology Supplier",
+            "contact_email": "sales@example.com"
+        }
+    },
+    {
+        "id": "D002",
+        "name": "Photo Editor",
+        "price": 59.0,
+        "stock": 50,
+        "type": "digital",
+        "download_size": 850.5,
+        "supplier": {
+            "supplier_id": "SUP1",
+            "name": "Demo Technology Supplier",
+            "contact_email": "sales@example.com"
+        }
+    },
+    {
+        "id": "S001",
+        "name": "Cloud Storage Plan",
+        "price": 9.99,
+        "stock": 200,
+        "type": "subscription",
+        "duration_months": 12,
+        "supplier": {
+            "supplier_id": "SUP1",
+            "name": "Demo Technology Supplier",
+            "contact_email": "sales@example.com"
+        }
+    }
+]
