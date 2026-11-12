@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2140" height="2070" viewBox="0 0 2140 2070">
+<rect width="2140" height="2070" fill="white"/>
+<style>text{font-family:Consolas,monospace;font-size:17px;fill:#162638}
+.title{font-size:28px;font-weight:bold}.name{font-size:23px;font-weight:bold}
+.edge{fill:none;stroke:#162638;stroke-width:2}.class{fill:#f8fbfe;stroke:#162638;stroke-width:2}
+.relation{font-size:19px;font-weight:bold;paint-order:stroke;stroke:white;stroke-width:6px}</style>
+<defs><marker id="triangle" markerWidth="20" markerHeight="20" refX="17" refY="10" orient="auto" markerUnits="userSpaceOnUse">
+<path d="M 1 1 L 17 10 L 1 19 Z" fill="white" stroke="#162638" stroke-width="2"/></marker>
+<marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M 1 1 L 10 6 L 1 11" fill="none" stroke="#162638"/></marker></defs>
+<text x="25" y="38" class="title">INF1103 Week 10 / Lab 8 — typed class diagram (sections 5.3 and 8)</text>
+<rect x="20" y="100" width="470" height="259" class="class"/>
+<text x="34" y="132" class="name">Supplier</text>
+<path d="M20 145 H490" class="edge"/>
+<text x="32" y="169" class="">+ supplier_id: String</text>
+<text x="32" y="194" class="">+ name: String</text>
+<text x="32" y="219" class="">+ contact_email: String</text>
+<path d="M20 229 H490" class="edge"/>
+<text x="32" y="257" class="">+ Supplier(supplier_id: String, name: String,</text>
+<text x="32" y="282" class="">    contact_email: String)</text>
+<text x="32" y="307" class="">+ display_information(): Void</text>
+<text x="32" y="332" class="">+ to_dict(): Map&lt;String, String&gt;</text>
+<rect x="680" y="100" width="650" height="459" class="class"/>
+<text x="694" y="132" class="name">«abstract» Product</text>
+<path d="M680 145 H1330" class="edge"/>
+<text x="692" y="169" class="">- __product_id: String {read-only product_id}</text>
+<text x="692" y="194" class="">- __name: String</text>
+<text x="692" y="219" class="">- __price: Real {read-only price}</text>
+<text x="692" y="244" class="">- __stock: Integer</text>
+<text x="692" y="269" class="">+ supplier: Supplier</text>
+<path d="M680 279 H1330" class="edge"/>
+<text x="692" y="307" class="">+ Product(product_id: String, name: String,</text>
+<text x="692" y="332" class="">    price: Real, stock: Integer, supplier: Supplier)</text>
+<text x="692" y="357" class="">+ get_product_id(): String</text>
+<text x="692" y="382" class="">+ get_name(): String</text>
+<text x="692" y="407" class="">+ get_price(): Real</text>
+<text x="692" y="432" class="">+ get_stock(): Integer</text>
+<text x="692" y="457" class="">+ update_stock(quantity: Integer): Void</text>
+<text x="692" y="482" class="">+ display_information(): Void</text>
+<text x="692" y="507" class="">+ to_dict(): ProductRecord</text>
+<text x="692" y="532" class="">+ get_fulfilment_info(): String {abstract}</text>
+<rect x="1480" y="100" width="560" height="109" class="class"/>
+<text x="1494" y="132" class="name">«interface» CanBeShipped</text>
+<path d="M1480 145 H2040" class="edge"/>
+<path d="M1480 154 H2040" class="edge"/>
+<text x="1492" y="182" class="">+ calculate_shipping_cost(): Real {abstract}</text>
+<rect x="20" y="800" width="570" height="334" class="class"/>
+<text x="34" y="832" class="name">PhysicalProduct</text>
+<path d="M20 845 H590" class="edge"/>
+<text x="32" y="869" class="">- __weight: Real</text>
+<text x="32" y="894" class="">+ BASE_SHIPPING_COST: Real = 5.0</text>
+<text x="32" y="919" class="">+ SHIPPING_COST_PER_KG: Real = 2.0</text>
+<path d="M20 929 H590" class="edge"/>
+<text x="32" y="957" class="">+ PhysicalProduct(common..., weight: Real,</text>
+<text x="32" y="982" class="">    supplier: Supplier)</text>
+<text x="32" y="1007" class="">+ get_weight(): Real</text>
+<text x="32" y="1032" class="">+ display_information(): Void</text>
+<text x="32" y="1057" class="">+ get_fulfilment_info(): String</text>
+<text x="32" y="1082" class="">+ calculate_shipping_cost(): Real</text>
+<text x="32" y="1107" class="">+ to_dict(): ProductRecord</text>
+<rect x="760" y="800" width="570" height="259" class="class"/>
+<text x="774" y="832" class="name">DigitalProduct</text>
+<path d="M760 845 H1330" class="edge"/>
+<text x="772" y="869" class="">- __download_size: Real</text>
+<path d="M760 879 H1330" class="edge"/>
+<text x="772" y="907" class="">+ DigitalProduct(common..., download_size: Real,</text>
+<text x="772" y="932" class="">    supplier: Supplier)</text>
+<text x="772" y="957" class="">+ get_download_size(): Real</text>
+<text x="772" y="982" class="">+ display_information(): Void</text>
+<text x="772" y="1007" class="">+ get_fulfilment_info(): String</text>
+<text x="772" y="1032" class="">+ to_dict(): ProductRecord</text>
+<rect x="1470" y="800" width="570" height="259" class="class"/>
+<text x="1484" y="832" class="name">SubscriptionProduct</text>
+<path d="M1470 845 H2040" class="edge"/>
+<text x="1482" y="869" class="">- __duration_months: Integer</text>
+<path d="M1470 879 H2040" class="edge"/>
+<text x="1482" y="907" class="">+ SubscriptionProduct(common...,</text>
+<text x="1482" y="932" class="">    duration_months: Integer, supplier: Supplier)</text>
+<text x="1482" y="957" class="">+ get_duration_months(): Integer</text>
+<text x="1482" y="982" class="">+ display_information(): Void</text>
+<text x="1482" y="1007" class="">+ get_fulfilment_info(): String</text>
+<text x="1482" y="1032" class="">+ to_dict(): ProductRecord</text>
+<rect x="20" y="1290" width="600" height="384" class="class"/>
+<text x="34" y="1322" class="name">Inventory</text>
+<path d="M20 1335 H620" class="edge"/>
+<text x="32" y="1359" class="">- __products: Product [0..*]</text>
+<text x="32" y="1384" class="">+ products: Product [0..*] {snapshot}</text>
+<path d="M20 1394 H620" class="edge"/>
+<text x="32" y="1422" class="">+ Inventory()</text>
+<text x="32" y="1447" class="">+ add_product(product: Product): Boolean</text>
+<text x="32" y="1472" class="">+ remove_product(product_id: String): Boolean</text>
+<text x="32" y="1497" class="">+ find_product(product_id: String): Product [0..1]</text>
+<text x="32" y="1522" class="">+ search_product(product_id: String): Product [0..1]</text>
+<text x="32" y="1547" class="">+ update_stock(product_id: String,</text>
+<text x="32" y="1572" class="">    quantity: Integer): Boolean</text>
+<text x="32" y="1597" class="">+ get_products(): Product [0..*] {snapshot}</text>
+<text x="32" y="1622" class="">+ display_all_products(): Void</text>
+<text x="32" y="1647" class="">+ display_all(): Void</text>
+<rect x="1480" y="1290" width="560" height="184" class="class"/>
+<text x="1494" y="1322" class="name">OrderLine</text>
+<path d="M1480 1335 H2040" class="edge"/>
+<text x="1492" y="1359" class="">- __product: Product {read-only product}</text>
+<text x="1492" y="1384" class="">- __quantity: Integer {read-only quantity}</text>
+<path d="M1480 1394 H2040" class="edge"/>
+<text x="1492" y="1422" class="">+ OrderLine(product: Product, quantity: Integer)</text>
+<text x="1492" y="1447" class="">+ calculate_subtotal(): Real</text>
+<rect x="760" y="1600" width="570" height="359" class="class"/>
+<text x="774" y="1632" class="name">Order</text>
+<path d="M760 1645 H1330" class="edge"/>
+<text x="772" y="1669" class="">+ order_id: String</text>
+<text x="772" y="1694" class="">- __order_lines: OrderLine [0..*]</text>
+<text x="772" y="1719" class="">+ order_lines: OrderLine [0..*] {snapshot}</text>
+<text x="772" y="1744" class="">- __cancelled: Boolean {read-only cancelled}</text>
+<path d="M760 1754 H1330" class="edge"/>
+<text x="772" y="1782" class="">+ Order(order_id: String)</text>
+<text x="772" y="1807" class="">+ add_order_line(product: Product,</text>
+<text x="772" y="1832" class="">    quantity: Integer): Void</text>
+<text x="772" y="1857" class="">+ remove_order_line(index: Integer): Void</text>
+<text x="772" y="1882" class="">+ calculate_total(): Real</text>
+<text x="772" y="1907" class="">+ cancel(): Void</text>
+<text x="772" y="1932" class="">+ display_information(): Void</text>
+<rect x="20" y="1790" width="600" height="234" class="class"/>
+<text x="34" y="1822" class="name">InventoryFile</text>
+<path d="M20 1835 H620" class="edge"/>
+<text x="32" y="1859" class="">- __file_path: String</text>
+<path d="M20 1869 H620" class="edge"/>
+<text x="32" y="1897" class="">+ InventoryFile(file_path: String)</text>
+<text x="32" y="1922" class="">+ load(inventory: Inventory): Void</text>
+<text x="32" y="1947" class="">+ save(inventory: Inventory): Void</text>
+<text x="32" y="1972" class="">- __create_product(record: ProductRecord,</text>
+<text x="32" y="1997" class="">    suppliers: Map&lt;String, Supplier&gt;): Product</text>
+<path d="M490 205 H680" class="edge"/>
+<text x="510" y="185" class="relation">1</text>
+<text x="618" y="185" class="relation">0..*</text>
+<text x="508" y="233" class="">supplies</text>
+<path d="M305 800 V720 H890 V559" class="edge" marker-end="url(#triangle)"/>
+<path d="M1045 800 V559" class="edge" marker-end="url(#triangle)"/>
+<path d="M1755 800 V720 H1200 V559" class="edge" marker-end="url(#triangle)"/>
+<path d="M590 965 H650 V65 H1700 V100" class="edge" marker-end="url(#triangle)" stroke-dasharray="8 6"/>
+<path d="M320 1260 V1220 H705 V559" class="edge"/>
+<path d="M320 1290 L309 1275 L320 1260 L331 1275 Z" fill="white" stroke="#162638" stroke-width="2"/>
+<text x="338" y="1265" class="relation">0..*</text>
+<text x="708" y="589" class="relation">0..*</text>
+<text x="350" y="1200" class="">aggregates (shared membership)</text>
+<path d="M1760 1290 V1245 H2090 V470 H1330" class="edge"/>
+<text x="1340" y="455" class="relation">1</text>
+<text x="1770" y="1280" class="relation">0..*</text>
+<text x="1810" y="1233" class="">refers to</text>
+<path d="M1360 1700 H1760 V1474" class="edge"/>
+<path d="M1330 1700 L1345 1689 L1360 1700 L1345 1711 Z" fill="#162638" stroke="#162638" stroke-width="2"/>
+<text x="1365" y="1685" class="relation">1</text>
+<text x="1772" y="1502" class="relation">0..*</text>
+<text x="1490" y="1682" class="">creates / owns</text>
+<path d="M320 1790 V1674" class="edge" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+<text x="335" y="1768" class="">uses</text>
+<text x="760" y="1285" class="">Visibility: + public; - private. Void = Python None.</text>
+<text x="760" y="1320" class="">common... = product_id: String, name: String,</text>
+<text x="760" y="1345" class="">price: Real, stock: Integer (constructor order).</text>
+<text x="760" y="1380" class="">ProductRecord = typed JSON record; subtype fields</text>
+<text x="760" y="1405" class="">are optional. SupplierRecord = Map&lt;String, String&gt;.</text>
+<text x="760" y="1440" class="">Snapshots contain the same referenced objects.</text>
+<text x="760" y="1475" class="">OrderLine lifecycle belongs to one Order;</text>
+<text x="760" y="1500" class="">the referenced Product remains independent.</text>
+<text x="760" y="1535" class="">Supplier IDs and Order IDs identify domain records.</text>
+<text x="25" y="2040" class="">Lab 8 §8 review: plain association for Supplier/Product and OrderLine/Product; shared aggregation for Inventory/Product.</text>
+</svg>
