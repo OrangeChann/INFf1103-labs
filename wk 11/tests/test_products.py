@@ -154,9 +154,12 @@ class TestAddProductMenu(unittest.TestCase):
         inventory = self.add_with_answers("9")
         self.assertEqual(inventory.get_products(), [])
 
-    def test_invalid_additional_value_adds_nothing(self):
-        inventory = self.add_with_answers("1", "P1", "Desk", "80", "2", "SUP1", "Supplier", "test@example.com", "heavy")
-        self.assertEqual(inventory.get_products(), [])
+    def test_invalid_additional_value_asks_again(self):
+        # Changed in Lab 9 (section 1.4/5.1): instead of discarding the whole
+        # product after "heavy", the user is asked again until it is valid.
+        inventory = self.add_with_answers("1", "P1", "Desk", "80", "2", "SUP1", "Supplier",
+                                          "test@example.com", "heavy", "12.5")
+        self.assertEqual(inventory.search_product("P1").get_weight(), 12.5)
 
 
 class TestJsonPersistence(unittest.TestCase):

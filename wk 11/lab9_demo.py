@@ -3,13 +3,18 @@
 Write your prediction in lab9_notes.md BEFORE running: python -B lab9_demo.py
 """
 import inspect
+import os
 import subprocess
 import sys
+from unittest.mock import patch
 
 import inventory_file
 import main as menu
 from discount_strategy import BulkDiscount, PercentageDiscount
+from input_helpers import get_positive_float
+from inventory import Inventory
 from order import Order
+from product_loader import load_products
 from product import Product
 from product_factory import ProductFactory
 from student_discount import StudentDiscount
@@ -135,6 +140,40 @@ def section_4() -> None:
     print(f"  DigitalProduct overrides update_stock: {overrides} (rule is inherited)")
 
 
+def section_5() -> None:
+    print("5.1 USER INPUT - the user types abc, then -5, then 12.50")
+    typed = iter(["abc", "-5", "12.50"])
+
+    def keyboard(prompt: str) -> str:
+        entry = next(typed)
+        print(f"{prompt}{entry}")   # show the prompt and what was "typed"
+        return entry
+
+    with patch("builtins.input", keyboard):
+        value = get_positive_float("Price: ")
+    print(f"Returned value: {value!r}")
+
+    folder = os.path.dirname(os.path.abspath(__file__))
+    supplier = Supplier("SUP1", "Office Supplies Ltd", "sales@example.com")
+
+    print("\n5.2 LOADING products.csv")
+    inventory = Inventory()
+    load_products(os.path.join(folder, "products.csv"), inventory, supplier)
+    print(f"Inventory now holds: {[p.get_product_id() for p in inventory.products]}")
+
+    print("\n5.2 AFTER RENAMING products.csv (the file is missing)")
+    original = os.path.join(folder, "products.csv")
+    renamed = os.path.join(folder, "products_renamed.csv")
+    os.rename(original, renamed)
+    try:
+        missing = Inventory()
+        load_products("products.csv", missing, supplier)
+        print(f"Inventory now holds: {[p.get_product_id() for p in missing.products]}")
+    finally:
+        os.rename(renamed, original)   # always put the file back
+    print(f"products.csv restored: {os.path.exists(original)}")
+
+
 def main() -> None:
     heading("SECTION 2 - STRATEGY PATTERN")
     section_2()
@@ -142,6 +181,8 @@ def main() -> None:
     section_3()
     heading("SECTION 4 - VALIDATION")
     section_4()
+    heading("SECTION 5 - EXCEPTION HANDLING")
+    section_5()
 
 
 if __name__ == "__main__":

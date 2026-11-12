@@ -188,3 +188,62 @@ The same checks pass for PhysicalProduct and SubscriptionProduct in
 tests/test_validation.py. Price 0 is now rejected ("Price must be greater than
 zero."), which Lab 8 had allowed.
 Change if different: none; the prediction matched.
+
+## 5.1 Predict first — get_positive_float with abc, -5, 12.50
+
+Prediction (the prompt "Price: " is shown before every entry):
+- abc: float("abc") raises ValueError, so the except block prints
+  "Please enter a valid number, e.g. 12.50" and the loop asks again.
+- -5: float("-5") works, but the validation check value <= 0 is True, so it
+  prints "Please enter a number greater than zero." and continue asks again.
+- 12.50: float("12.50") works and passes the check, so nothing extra is
+  printed and the function returns 12.5 (a float, so it is 12.5, not "12.50").
+So "Price: " appears three times, followed by those two messages, and the
+returned value is 12.5.
+
+Observed result (lab9_demo.py, section 5.1):
+Price: abc -> Please enter a valid number, e.g. 12.50
+Price: -5 -> Please enter a number greater than zero.
+Price: 12.50 -> nothing else printed; returned value 12.5
+Change if different: none; the prediction matched. I added one extra check to
+the lab's helper: float() also accepts "nan" and "inf", and nan <= 0 is False,
+so "nan" would have been returned as a valid price. The helper now treats
+non-finite numbers as invalid and asks again.
+
+## 5.2 Predict first — loading products.csv
+
+Prediction with products.csv present (open succeeds, so except is skipped;
+else and finally run):
+- Line 2 physical P001 Desk Lamp: loads.
+- Line 3 digital D001 Photo Editor: loads.
+- Line 4 service S001: the factory raises "Unknown product type: service";
+  the row's own except ValueError reports and skips it, and loading carries on.
+- Line 5 physical P002 Office Chair, price "abc": float("abc") raises
+  ValueError before the factory is called; reported and skipped.
+- Line 6 physical P003 Monitor Stand: loads.
+Messages in order: the line 4 message, the line 5 message, then
+"3 products loaded.", then "Load attempt finished." (finally always runs last).
+
+Prediction after renaming products.csv: open() raises FileNotFoundError, so
+except runs and prints "Products file not found: products.csv". else does
+NOT run, so no rows are read and no "products loaded" line is printed.
+finally still runs and prints "Load attempt finished." The program does not
+crash, and the inventory is unchanged.
+
+Observed result with products.csv present:
+Line 4 skipped (service,S001,Installation,30.00,5): Unknown product type: service
+Line 5 skipped (physical,P002,Office Chair,abc,3): could not convert string to float: 'abc'
+3 products loaded.
+Load attempt finished.
+The inventory held P001, D001 and P003.
+Observed result after renaming products.csv: only
+"Products file not found: products.csv" (except) and
+"Load attempt finished." (finally) were printed; else did not run, nothing
+crashed and the inventory stayed empty. The demo renames the file back
+afterwards inside its own finally block.
+Change if different: none; the prediction matched. Note that the CSV has no
+weight or download size column, so loaded products use the factory's
+defaults (0.00 kg / 0.00 MB). In the menu (option 9) with my saved
+inventory.json, P001, D001 and P003 are reported as duplicate IDs (those IDs
+already exist), so 0 products load there; the "3 products loaded" result is
+for an empty inventory, as in the lab question and lab9_demo.py.

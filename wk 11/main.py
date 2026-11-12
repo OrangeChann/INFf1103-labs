@@ -1,4 +1,5 @@
 import os
+from collections.abc import Callable
 
 from can_be_shipped import CanBeShipped
 from product_factory import ProductFactory
@@ -10,28 +11,31 @@ from order import Order
 from discount_strategy import (DiscountStrategy, NoDiscount,
                                PercentageDiscount, BulkDiscount)
 from student_discount import StudentDiscount
+from input_helpers import get_non_negative_int, get_positive_float, get_positive_int
+from product_loader import load_products
 
-INVENTORY_FILE = os.environ.get(
-    "INVENTORY_FILE",
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "inventory.json"),
-)
+APP_FOLDER = os.path.dirname(os.path.abspath(__file__))
+INVENTORY_FILE = os.environ.get("INVENTORY_FILE",
+                                os.path.join(APP_FOLDER, "inventory.json"))
+PRODUCTS_CSV = os.path.join(APP_FOLDER, "products.csv")
 
 
 # Lab 9, section 3: the menu only maps a choice to a product type name and the
 # one extra detail to ask for. Which class to build is the factory's decision.
-# menu choice: (factory type, extra detail keyword, prompt, converter)
-PRODUCT_MENU: dict[str, tuple[str, str, str, type]] = {
-    "1": ("physical", "weight", "Weight (kg): ", float),
-    "2": ("digital", "download_size", "Download Size (MB): ", float),
-    "3": ("subscription", "duration_months", "Duration (months): ", int),
+# Section 5.1: each detail is read with a helper that asks again until valid.
+# menu choice: (factory type, extra detail keyword, prompt, input helper)
+PRODUCT_MENU: dict[str, tuple[str, str, str, Callable[[str], float]]] = {
+    "1": ("physical", "weight", "Weight (kg): ", get_positive_float),
+    "2": ("digital", "download_size", "Download Size (MB): ", get_positive_float),
+    "3": ("subscription", "duration_months", "Duration (months): ", get_positive_int),
 }
 
 
 def create_product(menu_choice: str, product_id: str, name: str, price: float,
                    stock: int, supplier: Supplier) -> Product:
     """Ask for the extra detail this type needs, then let the factory build it."""
-    product_type, detail, prompt, convert = PRODUCT_MENU[menu_choice]
-    value = convert(input(prompt))
+    product_type, detail, prompt, ask = PRODUCT_MENU[menu_choice]
+    value = ask(prompt)
     return ProductFactory.create(product_type, product_id, name, price, stock,
                                  supplier, **{detail: value})
 
@@ -69,9 +73,10 @@ def add_product(inventory: Inventory) -> None:
         print("\nA product with that ID already exists.")
         return
     name = input("Product Name: ").strip()
+    # Section 5.1: these keep asking until the value is valid, so they never raise.
+    price = get_positive_float("Price: ")
+    stock = get_non_negative_int("Stock Quantity: ")
     try:
-        price = float(input("Price: "))
-        stock = int(input("Stock Quantity: "))
         supplier = choose_supplier(inventory)
         product = create_product(product_type, product_id, name, price, stock, supplier)
     except ValueError as error:
@@ -91,12 +96,8 @@ def update_stock(inventory: Inventory) -> None:
     print("\nProduct Found:")
     print("Name:", product.get_name())
     print("Current Stock:", product.get_stock())
-    try:
-        new_stock = int(input("\nNew Stock Quantity: "))
-        inventory.update_stock(product_id, new_stock)
-    except ValueError as error:
-        print(f"\nInvalid quantity ({error}). Stock not updated.")
-        return
+    new_stock = get_non_negative_int("\nNew Stock Quantity: ")
+    inventory.update_stock(product_id, new_stock)
     print("\nStock updated successfully!")
 
 
@@ -176,7 +177,7 @@ def manage_orders(inventory: Inventory, orders: dict[str, Order]) -> None:
                 if product is None:
                     print("Product not found.")
                     continue
-                order.add_order_line(product, int(input("Quantity: ")))
+                order.add_order_line(product, get_positive_int("Quantity: "))
                 print("Order line added.")
             elif choice == "3":
                 order.display_information()
@@ -193,6 +194,30 @@ def manage_orders(inventory: Inventory, orders: dict[str, Order]) -> None:
             print(f"Invalid order operation: {error}")
 
 
+def load_products_from_csv(inventory: Inventory) -> None:
+    """Section 5.2: import products from a CSV file through the factory."""
+    print("\nLoad Products from CSV")
+    path = input("CSV file (press Enter for products.csv): ").strip() or PRODUCTS_CSV
+    # The CSV has no supplier column, so one supplier is used for every row.
+    try:
+        supplier = choose_supplier(inventory)
+    except ValueError as error:
+        print(f"\nInvalid supplier ({error}). Nothing loaded.")
+        return
+    load_products(path, inventory, supplier)
+
+
+def save_inventory(inventory_file: InventoryFile, inventory: Inventory) -> bool:
+    """Lab 9, section 1.5 (3): a failed save is reported instead of crashing."""
+    try:
+        inventory_file.save(inventory)
+    except OSError as error:
+        print(f"Could not save the inventory ({error.strerror}). "
+              "Your changes have not been saved.")
+        return False
+    return True
+
+
 def print_menu() -> None:
     print("\n----------- MENU -----------")
     print("1. Display All Products")
@@ -203,6 +228,7 @@ def print_menu() -> None:
     print("6. Exit")
     print("7. Remove Product")
     print("8. Manage Orders")
+    print("9. Load Products from CSV")
     print("----------------------------")
 
 
@@ -231,11 +257,14 @@ def main() -> None:
             search_product(inventory)
         elif choice == "5":
             print("\nSaving inventory...")
-            inventory_file.save(inventory)
-            print("Inventory saved successfully to inventory.json.")
+            if save_inventory(inventory_file, inventory):
+                print("Inventory saved successfully to inventory.json.")
         elif choice == "6":
             print("\nSaving inventory before exit...")
-            inventory_file.save(inventory)
+            if not save_inventory(inventory_file, inventory):
+                # Do not quit and lose the user's changes; let them decide.
+                print("Not exiting. Fix the problem and try again.")
+                continue
             print("Inventory saved successfully.")
             print("\nThank you for using Inventory Management System.")
             print("Program terminated.")
@@ -244,8 +273,10 @@ def main() -> None:
             remove_product(inventory)
         elif choice == "8":
             manage_orders(inventory, orders)
+        elif choice == "9":
+            load_products_from_csv(inventory)
         else:
-            print("\nInvalid option. Please enter a number from 1 to 8.")
+            print("\nInvalid option. Please enter a number from 1 to 9.")
 
 
 if __name__ == "__main__":
