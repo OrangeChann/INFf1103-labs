@@ -198,13 +198,15 @@ Prediction (the prompt "Price: " is shown before every entry):
   prints "Please enter a number greater than zero." and continue asks again.
 - 12.50: float("12.50") works and passes the check, so nothing extra is
   printed and the function returns 12.5 (a float, so it is 12.5, not "12.50").
+
 So "Price: " appears three times, followed by those two messages, and the
 returned value is 12.5.
 
 Observed result (lab9_demo.py, section 5.1):
-Price: abc -> Please enter a valid number, e.g. 12.50
-Price: -5 -> Please enter a number greater than zero.
-Price: 12.50 -> nothing else printed; returned value 12.5
+- Price: abc -> Please enter a valid number, e.g. 12.50
+- Price: -5 -> Please enter a number greater than zero.
+- Price: 12.50 -> nothing else printed; returned value 12.5
+
 Change if different: none; the prediction matched. I added one extra check to
 the lab's helper: float() also accepts "nan" and "inf", and nan <= 0 is False,
 so "nan" would have been returned as a valid price. The helper now treats
@@ -221,6 +223,7 @@ else and finally run):
 - Line 5 physical P002 Office Chair, price "abc": float("abc") raises
   ValueError before the factory is called; reported and skipped.
 - Line 6 physical P003 Monitor Stand: loads.
+
 Messages in order: the line 4 message, the line 5 message, then
 "3 products loaded.", then "Load attempt finished." (finally always runs last).
 
@@ -231,19 +234,142 @@ finally still runs and prints "Load attempt finished." The program does not
 crash, and the inventory is unchanged.
 
 Observed result with products.csv present:
-Line 4 skipped (service,S001,Installation,30.00,5): Unknown product type: service
-Line 5 skipped (physical,P002,Office Chair,abc,3): could not convert string to float: 'abc'
-3 products loaded.
-Load attempt finished.
+- Line 4 skipped (service,S001,Installation,30.00,5): Unknown product type: service
+- Line 5 skipped (physical,P002,Office Chair,abc,3): could not convert string to float: 'abc'
+- 3 products loaded.
+- Load attempt finished.
+
 The inventory held P001, D001 and P003.
+
 Observed result after renaming products.csv: only
 "Products file not found: products.csv" (except) and
 "Load attempt finished." (finally) were printed; else did not run, nothing
 crashed and the inventory stayed empty. The demo renames the file back
 afterwards inside its own finally block.
+
 Change if different: none; the prediction matched. Note that the CSV has no
 weight or download size column, so loaded products use the factory's
 defaults (0.00 kg / 0.00 MB). In the menu (option 9) with my saved
 inventory.json, P001, D001 and P003 are reported as duplicate IDs (those IDs
 already exist), so 0 products load there; the "3 products loaded" result is
 for an empty inventory, as in the lab question and lab9_demo.py.
+
+## 6. Updated UML class diagram
+
+uml_class_diagram.png (generated from uml_class_diagram.svg) is the Lab 8
+diagram with the Lab 9 classes added; new or changed classes are orange.
+- DiscountStrategy is shown as «abstract» with apply(total: Real): Real
+  {abstract}. NoDiscount, PercentageDiscount, BulkDiscount and StudentDiscount
+  inherit from it (solid line, hollow triangle).
+- Order to DiscountStrategy is an association with an open arrow from Order
+  (Order knows its strategy; the strategy does not know the order).
+  Multiplicity 1 at the DiscountStrategy end (NoDiscount by default, so never
+  none) and 0..* at the Order end (one strategy object can be shared).
+- ProductFactory has a dashed open arrow to Product labelled «creates»: a
+  dependency, because it builds products but never stores them.
+- Validation rules are written as constraints, e.g. price {> 0},
+  stock {>= 0}, quantity {> 0}, percentage {0 < p <= 100}.
+- load_products is a function, not a class, so it is drawn as a «utility»
+  box with a note that it creates products through the factory.
+- Python-specific names are translated (Real, Integer, String, Void,
+  {static}, {abstract}) so a developer who does not know Python can read it.
+
+## 7. Testing and review
+
+Run from the wk 11 folder: python -m unittest -v (99 tests, all passing).
+The tests live in the tests folder: test_discounts.py, test_factory.py,
+test_validation.py and test_exceptions.py are new for Lab 9;
+test_products.py and test_relationships.py are the Lab 7 and Lab 8 regression
+tests, kept so earlier behaviour is not broken by the new design.
+
+Lab checklist and the test that confirms each item:
+- Order totals go through a DiscountStrategy with no discount if/elif:
+  test_order_delegates_to_strategy_apply, test_order_contains_no_discount_type_logic.
+- A new strategy needs no change to Order: test_new_strategy_needs_no_change_to_order
+  (a HalfPrice strategy invented inside the test), plus StudentDiscount in its own file.
+- set_discount() changes the strategy of an existing order:
+  test_bulk_then_percentage_predict_first, test_menu_sets_student_discount.
+- Products are created through ProductFactory: test_menu_and_loader_do_not_import_concrete_classes,
+  test_menu_add_product_goes_through_factory, test_json_loader_goes_through_factory,
+  test_products_are_created_through_factory.
+- Unknown product type raises a clear ValueError: test_unknown_type_raises_clear_value_error.
+- Invalid prices, stock and order quantities are rejected: test_validation.py (all types).
+- Invalid user input is handled and the user is asked again:
+  test_predict_first_abc_then_minus_5_then_12_50, test_add_product_asks_again_for_bad_price_and_stock,
+  test_update_stock_asks_again.
+- A missing products file is handled: test_missing_file_runs_except_and_finally_only.
+- Bad rows are reported and skipped, valid rows still load:
+  test_lab_file_loads_three_and_reports_two_bad_rows_in_order.
+- Each except catches a specific exception:
+  test_no_bare_or_catch_all_except_in_application_code (scans every .py file).
+
+Two older tests changed on purpose, and the reason is recorded in the code:
+the order-menu test now uses 7 for Back (6 is Set Discount), and the Lab 7
+"bad weight adds nothing" test now expects the user to be asked again, as
+section 1.4 requires. One Lab 7 test (a saved physical record with no weight
+must be skipped) failed after the factory was added; I kept the test and
+fixed the loader instead.
+
+## 8. Reflection task (optional)
+
+### 8.1 Where would a pattern add needless complexity?
+The main menu's if/elif on the option number. A Command pattern (one class
+per menu option) would add nine classes to replace a short, readable block
+that only ever chooses which function to call. The same goes for Supplier and
+Inventory: they have one behaviour each, so there is nothing to make
+interchangeable. Shipping cost has a single formula, so a ShippingStrategy
+would be a pattern looking for a problem.
+
+### 8.2 Is moving the OCP issue into the factory a good trade-off?
+Yes, for this system. Before, the "which class?" decision was repeated in
+main.py and inventory_file.py; now it is in one small, tested method, and the
+rest of the code depends only on Product. New product types are rare here
+(three in three labs), so editing one elif is cheap. If types were added
+often, or by other teams as plug-ins, a registry would be worth its extra
+complexity.
+
+### 8.3 When would rejecting the whole file be better?
+When the rows only make sense together, so a partial load leaves the system
+wrong: for example a complete price list replacing the old one, or stock
+transfers where one missing row breaks the totals. Also when the file itself
+is the wrong format (wrong header or column count on every row), when most
+rows fail, or when a person must fix and approve the file before anything is
+imported. Then the safer design is validate everything first, and load
+nothing unless every row is valid.
+
+### 8.4 Validation failure versus exception
+A validation failure is my own rule saying the data is not acceptable, checked
+with an if: Product(..., price=0, ...) fails "if price <= 0" and I raise
+ValueError("Price must be greater than zero."). An exception (in the sense of
+section 1.4) is an operation failing while it runs: float("abc") raises
+ValueError, and open("products.csv") raises FileNotFoundError when the file
+was renamed. They work together: the validation failure is reported by
+raising an exception, and the caller (the menu or load_products) handles both
+kinds in a specific except.
+
+### 8.5 Which predictions did not match? (draft — replace with your own)
+All the recorded Predict First answers matched the program output. While
+building the lab, three assumptions turned out wrong and were changed:
+- I assumed the factory's default weight would only affect the CSV. A Lab 7
+  test showed a corrupt JSON record with no weight was now loaded instead of
+  skipped, so the JSON loader now rejects records missing their type's fields.
+- I assumed float() only returns ordinary numbers. It accepts "nan", and
+  nan <= 0 is False, so get_positive_float would have returned nan as a price.
+  I added a finite-number check.
+- I expected menu option 9 to show "3 products loaded" too, but my saved
+  inventory already had P001, D001 and P003, so all three were duplicates and
+  0 loaded. The loader was right; my assumption about the data was wrong.
+
+### 8.6 Group project — Strategy or Factory? (example to personalise)
+For a food-waste project: Strategy would help for how expiry alerts are
+chosen (e.g. alert 3 days before, alert by food category, no alerts), because
+users switch between rules and new rules are likely. Factory would help if
+food items come from several sources (barcode scan, manual entry, receipt
+import) that must create FridgeItem, PantryItem or FrozenItem objects. It would
+be over-engineering for screens or reports that only ever have one version;
+there a plain function or class is simpler.
+
+## 9. Git and Docker workflow
+
+See README.md for the exact commands and the screenshot list. Commits and
+pushes are made by me; the screenshots show my own Git and Docker output.
