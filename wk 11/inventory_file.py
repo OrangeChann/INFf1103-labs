@@ -1,9 +1,7 @@
 import os
 import json
 
-from physical_product import PhysicalProduct
-from digital_product import DigitalProduct
-from subscription_product import SubscriptionProduct
+from product_factory import ProductFactory
 from inventory import Inventory
 from product import Product, ProductRecord
 from supplier import Supplier
@@ -54,7 +52,7 @@ class InventoryFile:
     def __create_product(self, record: ProductRecord,
                          suppliers: dict[str, Supplier]) -> Product:
         # The saved type identifier decides which subclass to create.
-        # Raw JSON is validated here; the domain uses concrete object types.
+        # Raw JSON is validated here; the factory builds the concrete type.
         common = (record["id"], record["name"], record["price"], record["stock"])
         supplier_data = record.get("supplier", {
             "supplier_id": "LEGACY", "name": "Legacy supplier (not recorded)",
@@ -68,11 +66,16 @@ class InventoryFile:
             suppliers[supplier_id] = supplier
         elif supplier.to_dict() != supplier_data:
             raise ValueError("Conflicting details for the same supplier ID.")
-        product_type = record["type"]
-        if product_type == "physical":
-            return PhysicalProduct(*common, record["weight"], supplier)
-        if product_type == "digital":
-            return DigitalProduct(*common, record["download_size"], supplier)
-        if product_type == "subscription":
-            return SubscriptionProduct(*common, record["duration_months"], supplier)
-        raise ValueError(f"Unknown product type: {product_type}")
+        # Lab 9, section 3: the factory decides which class to build. Any
+        # remaining fields (weight, download_size, ...) are that type's extra
+        # detail, so this loader needs no change when a product type is added.
+        details = {key: value for key, value in record.items()
+                   if key not in ("id", "name", "price", "stock", "supplier", "type")}
+        product = ProductFactory.create(record["type"], *common, supplier, **details)
+        # The factory's defaults are for sources with no extra details, such as
+        # products.csv. A saved JSON record must contain every field its type
+        # saves (e.g. a physical record needs its weight), so reject it if not.
+        missing = product.to_dict().keys() - record.keys() - {"supplier"}
+        if missing:
+            raise ValueError(f"Record is missing: {', '.join(sorted(missing))}")
+        return product

@@ -3,19 +3,31 @@
 Write your prediction in lab9_notes.md BEFORE running: python -B lab9_demo.py
 """
 import inspect
+import subprocess
+import sys
 
-from digital_product import DigitalProduct
+import inventory_file
+import main as menu
 from discount_strategy import BulkDiscount, PercentageDiscount
 from order import Order
-from physical_product import PhysicalProduct
+from product import Product
+from product_factory import ProductFactory
 from student_discount import StudentDiscount
 from supplier import Supplier
 
 
+def heading(title: str) -> None:
+    print("\n" + "=" * 60)
+    print(title)
+    print("=" * 60)
+
+
 def section_2() -> None:
     supplier = Supplier("SUP1", "Office Supplies Ltd", "sales@example.com")
-    keyboard = PhysicalProduct("P100", "Keyboard", 50.0, 20, 1.2, supplier)
-    software = DigitalProduct("D100", "Office Software", 100.0, 50, 750.0, supplier)
+    keyboard = ProductFactory.create("physical", "P100", "Keyboard", 50.0, 20,
+                                     supplier, weight=1.2)
+    software = ProductFactory.create("digital", "D100", "Office Software", 100.0,
+                                     50, supplier, download_size=750.0)
 
     print("2.1 OCP CHECK - does Order mention any discount type?")
     order_source = inspect.getsource(Order)
@@ -47,11 +59,50 @@ def section_2() -> None:
     print(f"  Default strategy when none given: {Order('O4').discount}")
 
 
+def section_3() -> None:
+    supplier = Supplier("SUP1", "Office Supplies Ltd", "sales@example.com")
+
+    print("3.2 FACTORY - the factory returns the right subclass as a Product")
+    for product_type in ("physical", "digital", "subscription"):
+        product: Product = ProductFactory.create(
+            product_type, "X1", "Example", 10.0, 1, supplier)
+        print(f"  create({product_type!r}) -> {type(product).__name__}: "
+              f"{product.get_fulfilment_info()}")
+
+    print("\n3.2 UNKNOWN TYPE - caught here so the demo can continue")
+    try:
+        ProductFactory.create("service", "S001", "Installation", 30.0, 5, supplier)
+    except ValueError as error:
+        print(f"  ValueError caught: {error}")
+
+    print("\n3.2 UNKNOWN TYPE - NOT caught (run as a separate program)")
+    code = "\n".join([
+        "from product_factory import ProductFactory",
+        "from supplier import Supplier",
+        "s = Supplier('SUP1', 'Office Supplies Ltd', 'sales@example.com')",
+        "ProductFactory.create('service', 'S001', 'Installation', 30.0, 5, s)",
+        "print('This line never runs')",
+    ])
+    result = subprocess.run([sys.executable, "-B", "-c", code], text=True,
+                            capture_output=True)
+    for line in result.stderr.strip().splitlines():
+        print(f"  | {line}")
+    print(f"  stdout: {result.stdout.strip() or '(nothing - the print never ran)'}")
+    print(f"  Exit code: {result.returncode}")
+
+    print("\n3.3 WHO KNOWS ABOUT WHAT - concrete classes imported by each file")
+    for module in (menu, inventory_file):
+        source = inspect.getsource(module)
+        known = [name for name in ("PhysicalProduct", "DigitalProduct",
+                                   "SubscriptionProduct") if f"import {name}" in source]
+        print(f"  {module.__name__}.py imports: {known or 'none - it uses ProductFactory'}")
+
+
 def main() -> None:
-    print("=" * 60)
-    print("SECTION 2 - STRATEGY PATTERN")
-    print("=" * 60)
+    heading("SECTION 2 - STRATEGY PATTERN")
     section_2()
+    heading("SECTION 3 - FACTORY PATTERN")
+    section_3()
 
 
 if __name__ == "__main__":

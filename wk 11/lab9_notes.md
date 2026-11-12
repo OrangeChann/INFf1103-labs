@@ -97,3 +97,59 @@ correct total (90.00 and 270.00). After deleting both orders the strategy still
 worked (apply(50) = 45.00), and an order created with no strategy used
 "No discount". This matches association with 1 (strategy) to 0..* (orders).
 Change if different: none; the prediction matched.
+
+## 3.2 Predict first — ProductFactory.create("service", ...)
+
+Prediction: "service" does not match "physical", "digital" or "subscription",
+so the else branch runs and the line
+raise ValueError(f"Unknown product type: {product_type}") inside
+ProductFactory.create() raises ValueError: Unknown product type: service.
+No product is returned. If nothing catches it, the exception travels back up
+through every caller to the top of the program; Python prints a traceback
+ending in that message and the program stops (exit code 1). Nothing after the
+call runs. In section 5.2 the CSV loader catches this ValueError so one bad row
+does not stop the whole load.
+
+Observed result: run as its own program with nothing catching it, Python
+printed a traceback pointing at product_factory.py line 41, the raise line in
+create(), ending "ValueError: Unknown product type: service". The next line,
+print('This line never runs'), did not run and the exit code was 1. When the
+same call was wrapped in try / except ValueError, the message was printed and
+the demo carried on.
+Change if different: none; the prediction matched.
+
+## 3.3 Predict first — adding a BundleProduct
+
+Prediction, before the factory (Lab 8 code): 3 places in 2 files, plus the new
+class itself.
+1. main.py create_product(): a new branch, plus a new import.
+2. inventory_file.py __create_product(): a new branch, plus a new import.
+3. main.py add_product(): the menu text and the list of valid choices.
+Places 1 and 2 both decide "which class to build", so the same decision is
+duplicated.
+
+Prediction, after the factory: 2 places, plus the new class itself.
+1. product_factory.py create(): one new elif branch and import. This is the
+   only place that decides which class to build.
+2. main.py PRODUCT_MENU: one new line so a user can choose it (the menu has
+   to offer the new option whatever the design).
+inventory_file.py no longer changes, because it passes the record's extra
+fields straight to the factory.
+
+Why the factory still breaks OCP: create() is an if/elif on the type name, so
+adding a type means modifying the factory, not only extending the program.
+Why that is acceptable here: the change is in one small, obvious, tested
+place instead of being repeated around the program. A design that avoids
+editing the factory (for example a registry that each class adds itself to)
+would add complexity this three-type system does not need — the simplest
+design that solves the current problem.
+
+Observed result: after the change, the demo's import check shows main.py and
+inventory_file.py import none of PhysicalProduct, DigitalProduct or
+SubscriptionProduct; only product_factory.py does. So a BundleProduct would
+change product_factory.py (one branch) and the PRODUCT_MENU line in main.py,
+compared with three places in two files before.
+Change if different: none; the prediction matched. This only holds because
+the loader passes the record's remaining fields (weight, download_size, ...)
+to the factory instead of reading each type's field by name as the Lab 8
+loader did; otherwise inventory_file.py would still need a change.

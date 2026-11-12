@@ -1,9 +1,7 @@
 import os
 
 from can_be_shipped import CanBeShipped
-from physical_product import PhysicalProduct
-from digital_product import DigitalProduct
-from subscription_product import SubscriptionProduct
+from product_factory import ProductFactory
 from inventory import Inventory, LINE
 from inventory_file import InventoryFile
 from product import Product
@@ -19,17 +17,23 @@ INVENTORY_FILE = os.environ.get(
 )
 
 
-def create_product(product_type: str, product_id: str, name: str, price: float,
+# Lab 9, section 3: the menu only maps a choice to a product type name and the
+# one extra detail to ask for. Which class to build is the factory's decision.
+# menu choice: (factory type, extra detail keyword, prompt, converter)
+PRODUCT_MENU: dict[str, tuple[str, str, str, type]] = {
+    "1": ("physical", "weight", "Weight (kg): ", float),
+    "2": ("digital", "download_size", "Download Size (MB): ", float),
+    "3": ("subscription", "duration_months", "Duration (months): ", int),
+}
+
+
+def create_product(menu_choice: str, product_id: str, name: str, price: float,
                    stock: int, supplier: Supplier) -> Product:
-    # Asks for the additional information that this product type requires.
-    if product_type == "1":
-        weight = float(input("Weight (kg): "))
-        return PhysicalProduct(product_id, name, price, stock, weight, supplier)
-    if product_type == "2":
-        download_size = float(input("Download Size (MB): "))
-        return DigitalProduct(product_id, name, price, stock, download_size, supplier)
-    duration_months = int(input("Duration (months): "))
-    return SubscriptionProduct(product_id, name, price, stock, duration_months, supplier)
+    """Ask for the extra detail this type needs, then let the factory build it."""
+    product_type, detail, prompt, convert = PRODUCT_MENU[menu_choice]
+    value = convert(input(prompt))
+    return ProductFactory.create(product_type, product_id, name, price, stock,
+                                 supplier, **{detail: value})
 
 
 def choose_supplier(inventory: Inventory) -> Supplier:
@@ -54,7 +58,7 @@ def add_product(inventory: Inventory) -> None:
     print("2. Digital Product")
     print("3. Subscription Product")
     product_type = input("Product Type: ").strip()
-    if product_type not in ("1", "2", "3"):
+    if product_type not in PRODUCT_MENU:
         print("\nInvalid product type. Product not added.")
         return
     product_id = input("Product ID: ").strip()
